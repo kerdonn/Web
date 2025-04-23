@@ -1,0 +1,47 @@
+from playwright.sync_api import sync_playwright
+from bs4 import BeautifulSoup
+
+def get_jobs():
+    url = "https://www.tootukassa.ee/toopakkumised?field_job_category_target_id=156&field_job_category_target_id=169"
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=True)
+        page = browser.new_page()
+        page.goto(url)
+        page.wait_for_timeout(5000)
+        html = page.content()
+        browser.close()
+
+    return html
+
+def parse_jobs(html):
+    soup = BeautifulSoup(html, 'html.parser')
+    jobs = soup.find_all('div', class_='job-offer')
+
+    parsed = []
+    for job in jobs:
+        title = job.select_one('.job-title')
+        company = job.select_one('.employer')
+        location = job.select_one('.job-location')
+
+        if title and company:
+            parsed.append({
+                'title': title.get_text(strip=True),
+                'company': company.get_text(strip=True),
+                'location': location.get_text(strip=True) if location else '',
+                'link': job.find('a')['href']
+            })
+    return parsed
+
+def save_as_html(jobs):
+    with open("IT.html", "w", encoding="utf-8") as f:
+        f.write("<html><head><meta charset='UTF-8'><title>IT tööpakkumised</title></head><body><ul>")
+        for job in jobs:
+            f.write(f"<li><a href='{job['link']}'>{job['title']}</a> – {job['company']} ({job['location']})</li>")
+        f.write("</ul></body></html>")
+
+if __name__ == "__main__":
+    html = get_jobs()
+    jobs = parse_jobs(html)
+    print(f"Leitud {len(jobs)} tööpakkumist.")
+    save_as_html(jobs)
