@@ -2,13 +2,13 @@ from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 
 def get_jobs():
-    url = "https://www.tootukassa.ee/toopakkumised?field_job_category_target_id=156&field_job_category_target_id=169"
+    url = "https://www.cvkeskus.ee/?utm_source=google&utm_medium=cpc&utm_campaign=b2c-apply-search-brand&gad_source=1"
 
     with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
+        browser = p.chromium.launch(headless=False)
         page = browser.new_page()
         page.goto(url)
-        page.wait_for_timeout(5000)
+        page.wait_for_timeout(500000000)    
         html = page.content()
         browser.close()
 
@@ -45,3 +45,7 @@ if __name__ == "__main__":
     jobs = parse_jobs(html)
     print(f"Leitud {len(jobs)} tööpakkumist.")
     save_as_html(jobs)
+#     cvkeskus_jobs = get_cvkeskus_jobs()       
+#     all_jobs = tootukassa_jobs + cvkeskus_jobs
+#     save_as_html(all_jobs, "toopakkumised.html")
+
